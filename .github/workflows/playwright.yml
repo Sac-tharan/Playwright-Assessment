@@ -1,0 +1,61 @@
+name: Playwright Automation Tests
+
+on:
+  push:
+    branches: [main, master]
+
+  pull_request:
+    branches: [main, master]
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    timeout-minutes: 30
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Get repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Install Playwright browser
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Run automation tests
+      - name: Run Playwright Tests
+        run: npm test
+
+      # Upload HTML report
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      # Upload screenshots and test evidence
+      - name: Upload Test Evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence
+          path: |
+            screenshots/
+            test-results/
+          retention-days: 14
